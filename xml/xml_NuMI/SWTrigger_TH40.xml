@@ -1,0 +1,49 @@
+<!-- Project details -->
+<!DOCTYPE project [
+
+<!ENTITY user "kmistry">
+<!ENTITY thresh "40"> <!--Change threshold here-->
+<!ENTITY name "Numi_SWtrigger_TH&thresh;">
+<!ENTITY numberjobs "20">
+<!ENTITY filesperjob "650">
+]>
+
+<project name="&name;">
+
+  <!-- Group -->
+  <!--<group>uboone</group> -->
+  <numevents>10000</numevents>
+  <!-- Project size (numevents is an upper limit) -->
+  <numjobs>&numberjobs;</numjobs> <!-- 4000 -->
+  <maxfilesperjob>&filesperjob;</maxfilesperjob>
+
+  <!-- Where to look for fcl files (in addition to $FHICL_FILE_PATH) -->
+  <fcldir>/pnfs/uboone/persistent/users/&user;/SWtrigger/</fcldir>
+
+  <!-- Operating System -->
+  <os>SL6</os>
+
+  <!-- Batch resources -->
+  <resource>DEDICATED,OPPORTUNISTIC,OFFSITE</resource>
+
+  <!-- Larsoft information -->
+  <larsoft>
+    <tag>v06_26_01_13</tag>
+    <qual>e10:debug</qual>
+  </larsoft>
+
+  <!-- Stages -->
+  <stage name = "analyze">
+    <numjobs>&numberjobs;</numjobs>
+    <maxfilesperjob>&filesperjob;</maxfilesperjob>
+    <!--<schema>root</schema>-->
+    <inputdef>davidc_prod_numiunbiased_swizzle_inclusive_v5_runrange_14866_16400</inputdef>
+    <fcl>swtrigger_TH&thresh;.fcl</fcl>
+    <outdir>/pnfs/uboone/scratch/users/&user;/SWtrigger/&name;/out/</outdir>
+    <logdir>/pnfs/uboone/scratch/users/&user;/SWtrigger/&name;/out/</logdir>
+    <workdir>/pnfs/uboone/resilient/users/&user;/SWtrigger/&name;/work/</workdir>
+    <bookdir>/uboone/data/users/&user;/SWtrigger/&name;/book</bookdir>
+    <memory>600</memory>
+    <jobsub>--expected-lifetime=short</jobsub>
+  </stage>
+</project>

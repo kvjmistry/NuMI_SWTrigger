@@ -1,0 +1,112 @@
+#include "geometry_microboone.fcl"
+#include "detectorclocks_microboone.fcl"
+#include "databaseutil_microboone.fcl"
+#include "sam_microboone.fcl"
+#include "opticaldetectormodules_microboone.fcl"
+#include "correct_saturation.fcl"
+
+process_name: SWTrigger
+services:
+{
+  TFileService: { fileName: "swtrigger_hist_TH180.root" }
+  RandomNumberGenerator: {} #ART native random number generator
+  ExptGeoHelperInterface: @local::microboone_geometry_helper
+  Geometry:               @local::microboone_geo
+  UBOpReadoutMap:         @local::microboone_opreadoutmap
+  DetectorClocksService:  @local::microboone_detectorclocks
+  DatabaseUtil:           @local::microboone_database
+}
+
+#source is now a root file
+source:
+{
+  module_type: RootInput
+#  swizzleTrigger:  true
+#  swizzleTriggerType: ALL ## This is the only option that works currently!
+#  swizzleTriggerType: BNB
+#  swizzleTriggerType: EXT
+#  swizzleTriggerType: NuMI
+#  swizzleTriggerType: CALIB
+}
+
+outputs:
+{
+ outbnb:
+  {
+   module_type: RootOutput
+   fileName: "%ifb_%tc_bnb.root"
+   dataTier: "root-tuple"
+   fastCloning: true
+   SelectEvents: {SelectEvents:[reco]}
+  }
+}
+
+physics:
+{
+
+ producers:
+ {
+ }
+
+ filters:
+ {
+  # Software trigger emulation.
+        swtrigger: 
+        {
+            module_type: "SWTrigger"
+
+            DAQHeaderModule:  "daq"
+            OpDataModule:     "pmtreadout"
+            OpFlashModule:    "opflashsat"
+            NumberOfChannels: 32
+            MinReadoutTicks:  1499
+            
+            drop_event : true
+            swtrg_algonames : ["NUMI"]
+            swtrg_algotype : ["FEMBeamTriggerAlgo"]
+            swtrg_beam_window_size : 1100
+            swtrg_bits : [0x1000]
+            
+            NUMI_FEMBeamTriggerAlgo:{
+                Discr0deadtime : 6
+                Discr0delay : 4
+                Discr0precount : 1
+                Discr0threshold : 5
+                Discr3WindowSize : 754
+                Discr3WindowStart : 296
+                Discr3deadtime : 6
+                Discr3delay : 4
+                Discr3threshold : 10
+                Discr3width : 6
+                MinReadoutTicks : 500
+                PrescaleFactor : 1.0
+                TriggerThresMult : 1
+                TriggerThresPHMAX : 190
+                TriggerWindowSize : 750
+                TriggerWindowStart : 300
+                Verbosity : 3
+             }
+            
+   }
+        
+ }
+ #define the producer and filter modules for this path, order matters, 
+ #filters reject all following items.  see lines starting physics.producers below
+ reco: [ swtrigger ] 
+
+ #define the output stream, there could be more than one if using filters 
+ streambnb:  [ outbnb ]
+
+ #trigger_paths is a keyword and contains the paths that modify the art::event, 
+ #ie filters and producers
+ trigger_paths: [ reco ] 
+
+ #end_paths is a keyword and contains the paths that do not modify the art::Event, 
+ #ie analyzers and output streams.  these all run simultaneously
+ end_paths:     [ ]#streambnb ]  
+}
+
+services.DetectorClocksService.InheritClockConfig:  false
+
+physics.filters.swtrigger.HardwareTriggerProducer: "daq"
+physics.filters.swtrigger.NUMI_FEMBeamTriggerAlgo.TriggerThresPHMAX: 180
